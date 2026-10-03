@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriGuide AI</title>
+    <style>
+        :root {
+            --primary: #2ecc71;
+            --secondary: #27ae60;
+            --dark: #2c3e50;
+            --light: #f8f9fa;
+            --danger: #e74c3c;
+            --warning: #f1c40f;
+            --text: #333;
+            --bg: #ffffff;
+        }
+
+        [dir="rtl"] {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--light);
+            color: var(--text);
+        }
+
+        header {
+            background: white;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .btn-lang {
+            padding: 8px 16px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-lang:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 20px;
+        }
+
+        .search-section {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .search-section h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-box {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            gap: 10px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 15px 25px;
+            border-radius: 30px;
+            border: 2px solid #ddd;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+        }
+
+        .btn-search {
+            padding: 15px 30px;
+            border-radius: 30px;
+            border: none;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .food-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .health-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        [dir="rtl"] .health-badge {
+            right: auto;
+            left: 15px;
+        }
+
+        .badge-healthy {
+            background: #e8f8f0;
+            color: var(--primary);
+        }
+
+        .badge-unhealthy {
+            background: #fdecea;
+            color: var(--danger);
+        }
+
+        .food-card h3 {
+            margin: 0 0 15px 0;
+            font-size: 1.5rem;
+        }
+
+        .nutrition-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-val {
+            display: block;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .stat-lbl {
+            font-size: 0.75rem;
+            color: #777;
+        }
+
+        .food-info {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        /* Chat Widget */
+        #chat-widget {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        [dir="rtl"] #chat-widget {
+            right: auto;
+            left: 30px;
+        }
+
+        .chat-toggle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);
+        }
+
+        .chat-window {
+            position: absolute;
+            bottom: 80px;
+            right: 0;
+            width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        [dir="rtl"] .chat-window {
+            right: auto;
+            left: 0;
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .msg {
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .msg-bot {
+            background: #f0f0f0;
+            align-self: flex-start;
+        }
+
+        .msg-user {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+        }
+
+        .chat-input-area {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 5px;
+        }
+
+        .chat-input-area input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+        }
+
+        .chat-input-area button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+            margin: 10px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 600px) {
+            .chat-window {
+                width: calc(100vw - 40px);
+                right: 0;
+            }
+            .search-box {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <span>🥗</span>
+            <span data-i18n="logo">NutriGuide AI</span>
+        </div>
+        <div class="nav-controls">
+            <button class="btn-lang" onclick="toggleLanguage()" id="langBtn">العربية</button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="search-section">
+            <h1 data-i18n="hero_title">Discover Healthy Living</h1>
+            <p data-i18n="hero_subtitle">Search for any food to see its nutritional value and health impact.</p>
+            <div class="search-box">
+                <input type="text" id="searchInput" data-i18n-placeholder="search_placeholder" placeholder="Search food (e.g. Apple, Eggs, Pizza)...">
+                <button class="btn-search" onclick="handleSearch()" data-i18n="search_btn">Search</button>
+            </div>
+        </div>
+
+        <div class="results-grid" id="resultsGrid">
+            <!-- Results will be injected here -->
+        </div>
+    </div>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget">
+        <div class="chat-window" id="chatWindow">
+            <div class="chat-header">
+                <span data-i18n="chat_title">Nutrition AI</span>
+                <span style="cursor:pointer" onclick="toggleChat()" data-i18n="close">✕</span>
+            </div>
+            <div class="chat-messages" id="chatMessages">
+                <div class="msg msg-bot" data-i18n="chat_welcome">Hello! Ask me anything about nutrition or specific foods.</div>
+            </div>
+            <div class="loading-spinner" id="chatLoading"></div>
+            <div class="chat-input-area">
+                <input type="text" id="chatInput" data-i18n-placeholder="chat_placeholder" placeholder="Type a message...">
+                <button onclick="sendMessage()" data-i18n="send">Send</button>
+            </div>
+        </div>
+        <button class="chat-toggle" onclick="toggleChat()" id="chatToggleBtn">💬</button>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                logo: "NutriGuide AI",
+                hero_title: "Discover Healthy Living",
+                hero_subtitle: "Search for any food to see its nutritional value and health impact.",
+                search_placeholder: "Search food (e.g. Apple, Eggs, Pizza)...",
+                search_btn: "Search",
+                chat_title: "Nutrition AI",
+                close: "✕",
+                chat_welcome: "Hello! Ask me anything about nutrition or specific foods.",
+                chat_placeholder: "Type a message...",
+                send: "Send",
+                healthy: "Healthy",
+                unhealthy: "Unhealthy",
+                protein: "Protein",
+                carbs: "Carbs",
+                fat: "Fat",
+                calories: "Calories",
+                benefits: "Benefits",
+                recommend: "Recommendation",
+                no_results: "No food found. Try asking the AI instead!",
+                lang_btn: "العربية"
+            },
+            ar: {
+                logo: "دليل التغذية الذكي",
+                hero_title: "اكتشف حياة صحية",
+                hero_subtitle: "ابحث عن أي طعام لمعرفة قيمته الغذائية وتأثيره على الصحة.",
+                search_placeholder: "ابحث عن طعام (مثلاً: تفاح، بيض، بيتزا)...",
+                search_btn: "بحث",
+                chat_title: "خبير التغذية الذكي",
+                close: "✕",
+                chat_welcome: "مرحباً! اسألني أي شيء عن التغذية أو أطعمة محددة.",
+                chat_placeholder: "اكتب رسالة...",
+                send: "إرسال",
+                healthy: "صحي",
+                unhealthy: "غير صحي",
+                protein: "بروتين",
+                carbs: "كربوهيدرات",
+                fat: "دهون",
+                calories: "سعرات",
+                benefits: "الفوائد",
+                recommend: "نصيحة",
+                no_results: "لم يتم العثور على طعام. حاول سؤال الذكاء الاصطناعي بدلاً من ذلك!",
+                lang_btn: "English"
+            }
+        };
+
+        let currentLang = 'en';
+
+        // Mock Data for instant demo
+        const mockFoods = [
+            { id: 1, name: { en: 'Apple', ar: 'تفاح' }, calories: 52, protein: 0.3, carbs: 14, fat: 0.2, health: 'healthy', benefits: { en: 'High in fiber and vitamin C', ar: 'غني بالألياف وفيتامين سي' }, recommend: { en: 'Great for snacks', ar: 'رائع كوجبة خفيفة' } },
+            { id: 2, name: { en: 'Salmon', ar: 'سلمون' }, calories: 208, protein: 20, carbs: 0, fat: 13, health: 'healthy', benefits: { en: 'Rich in Omega-3 fatty acids', ar: 'غني بأحماض أوميغا 3 الدهنية' }, recommend: { en: 'Eat twice a week', ar: 'تناوله مرتين في الأسبوع' } },
+            { id: 3, name: { en: 'Pizza', ar: 'بيتزا' }, calories: 266, protein: 11, carbs: 33, fat: 10, health: 'unhealthy', benefits: { en: 'High in calories and sodium', ar: 'عالية في السعرات والصوديوم' }, recommend: { en: 'Eat in moderation', ar: 'تناولها باعتدال' } },
+            { id: 4, name: { en: 'Broccoli', ar: 'بروكلي' }, calories: 34, protein: 2.8, carbs: 7, fat: 0.4, health: 'healthy', benefits: { en: 'Excellent source of Vitamin K', ar: 'مصدر ممتاز لفيتامين K' }, recommend: { en: 'Steam or sauté', ar: 'اطهيه على البخار أو شوحه' } }
+        ];
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'ar' : 'en';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            
+            updateUI();
+            renderResults(mockFoods); // Re-render with current lang
+        }
+
+        function updateUI() {
+            const t = translations[currentLang];
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                el.textContent = t[key];
+            });
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                el.placeholder = t[key];
+            });
+            document.getElementById('langBtn').textContent = t.lang_btn;
+        }
+
+        function renderResults(foods) {
+            const grid = document.getElementById('resultsGrid');
+            const t = translations[currentLang];
+            grid.innerHTML = '';
+
+            if (foods.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center;">${t.no_results}</p>`;
+                return;
+            }
+
+            foods.forEach(food => {
+                const card = document.createElement('div');
+                card.className = 'food-card';
+                const name = typeof food.name === 'object' ? food.name[currentLang] : food.name;
+                const isHealthy = food.health === 'healthy';
+
+                card.innerHTML = `
+                    <div class="health-badge ${isHealthy ? 'badge-healthy' : 'badge-unhealthy'}">
+                        ${isHealthy ? t.healthy : t.unhealthy}
+                    </div>
+                    <h3>${name}</h3>
+                    <div class="nutrition-stats">
+                        <div class="stat"><span class="stat-val">${food.calories}</span><span class="stat-lbl">${t.calories}</span></div>
+                        <div class="stat"><span class="stat-val">${food.protein}g</span><span class="stat-lbl">${t.protein}</span></div>
+                        <div class="stat"><span class="stat-val">${food.carbs}g</span><span class="stat-lbl">${t.carbs}</span></div>
+                        <div class="stat"><span class="stat-val">${food.fat}g</span><span class="stat-lbl">${t.fat}</span></div>
+                    </div>
+                    <div class="food-info">
+                        <p><strong>${t.benefits}:</strong> ${typeof food.benefits === 'object' ? food.benefits[currentLang] : food.benefits}</p>
+                        <p><strong>${t.recommend}:</strong> ${typeof food.recommend === 'object' ? food.recommend[currentLang] : food.recommend}</p>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) return;
+
+            const filtered = mockFoods.filter(f => {
+                const name = typeof f.name === 'object' ? f.name[currentLang].toLowerCase() : f.name.toLowerCase();
+                const nameEn = typeof f.name === 'object' ? f.name.en.toLowerCase() : f.name.en.toLowerCase();
+                return name.includes(query) || nameEn.includes(query);
+            });
+
+            renderResults(filtered);
+        }
+
+        // Chat Logic
+        function toggleChat() {
+            const win = document.getElementById('chatWindow');
+            win.style.display = win.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            const chatMessages = document.getElementById('chatMessages');
+            const loading = document.getElementById('chatLoading');
+            
+            // Add user message
+            appendMessage(msg, 'user');
+            input.value = '';
+            loading.style.display = 'block';
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch('__API_BASE__/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        messages: [
+                            { role: 'system', content: `You are a professional nutritionist. Respond in ${currentLang === 'ar' ? 'Arabic' : 'English'}. Be helpful and scientific.` },
+                            { role: 'user', content: msg }
+                        ]
+                    })
+                });
+                
+                const data = await response.json();
+                appendMessage(data.text || data.message || "Sorry, I couldn't process that.", 'bot');
+            } catch (err) {
+                appendMessage("Error connecting to AI service.", 'bot');
+            } finally {
+                loading.style.display = 'none';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        }
+
+        function appendMessage(text, sender) {
+            const chatMessages = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg msg-${sender}`;
+            msgDiv.textContent = text;
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Initial render
+        updateUI();
+        renderResults(mockFoods);
+
+        // Handle enter key
+        document.getElementById('searchInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleSearch();
+        });
+        document.getElementById('chatInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+</html>
